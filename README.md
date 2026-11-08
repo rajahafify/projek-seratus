@@ -45,3 +45,7 @@ To deploy by hand instead: `npx wrangler login`, then `npm run deploy`.
 2. Change `REPO` in `src/lib/site.ts` to your fork, and edit the cause and text in `src/pages/index.astro` and `src/lib/i18n.ts`.
 3. Change the `name` and the domain in `wrangler.jsonc`, then connect your fork to Cloudflare as above.
 4. Delete the files in `submissions/` other than `README.md`, and reset `data/stars.json` to `{}`, so your board starts empty.
+
+## License
+
+[MIT](LICENSE). Fork it and run your own.

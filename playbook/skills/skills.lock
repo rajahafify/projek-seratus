@@ -1,0 +1,10 @@
+# Third-party agent skills for website work. One line per source:
+# <github repo> <pinned commit> <path in that repo>...
+# install.sh copies each path into .claude/skills/<last part of the path>.
+# To update one, change its commit and run install.sh again.
+pbakaus/impeccable                   5e745ace7e151feb2a93d360d0281fe39448b857 plugin/skills/impeccable
+jakubantalik/transitions.dev         6a7d68260d624eb66661cc3af17e0989476f48ae skills/transitions-dev skills/transitions-polish skills/transitions-ui-generation
+Leonxlnx/taste-skill                 12af471f627f866411b4bd785b19646d3672784c skills/taste-skill
+microsoft/playwright-cli             b1a5903c5b633b8c9f843ad7b629c2a78437040c skills/playwright-cli
+greensock/gsap-skills                aed9cfd3277740755f6bfc1155c7aa645403b760 skills/gsap-core skills/gsap-timeline skills/gsap-scrolltrigger skills/gsap-plugins skills/gsap-utils skills/gsap-performance skills/gsap-frameworks skills/gsap-react
+nextlevelbuilder/ui-ux-pro-max-skill 28b3b8dee8c976df4fa3e94aed4e092ad43fcb03 .claude/skills/ui-ux-pro-max
