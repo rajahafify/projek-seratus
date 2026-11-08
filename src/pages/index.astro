@@ -1,0 +1,210 @@
+---
+import Base from '../layouts/Base.astro';
+import { REPO_URL, SLOT_COUNT, slotId } from '../lib/site';
+import { getRanking } from '../lib/ranking';
+
+const { all, board } = await getRanking();
+const cells = Array.from({ length: SLOT_COUNT }, (_, i) => ({ n: i + 1, p: board[i] }));
+const fmt = (n: number) => n.toLocaleString('en-US');
+---
+<Base>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow" data-i18n="hero.eyebrow">A community build</p>
+        <h1 data-i18n="hero.title"><span class="num">100</span> projects.<br>One cause.</h1>
+        <span class="tagline" data-i18n="hero.tagline">Seratus projek. Satu tujuan.</span>
+        <p class="lede" data-i18n="hero.lede">Projek Seratus brings people together to build <strong>one hundred projects</strong> for a cause they share. Small or big, code or not, every project fills a slot on the board until all hundred are done.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Submit a project</a>
+          <a class="btn btn-ghost" href="#fork" data-i18n="hero.cta2">Start your own Projek Seratus</a>
+        </div>
+      </div>
+
+      <div class="board-card">
+        <div class="board-head">
+          <span class="eyebrow">Papan Seratus</span>
+          <span class="count"><span id="filled">{board.length}</span> / 100</span>
+        </div>
+        <div class="board" id="board" role="list" aria-label="The 100 most-starred projects">
+          {cells.map((c) => (
+            <button type="button" role="listitem" class={`slot${c.p ? (c.n <= 10 ? ' is-top' : ' is-filled') : ''}`} data-n={c.n} disabled={!c.p}>{slotId(c.n)}</button>
+          ))}
+        </div>
+        <script type="application/json" id="slots-data" set:html={JSON.stringify(board)} />
+        <div class="board-legend" aria-hidden="true">
+          <span><i class="k-open"></i><span data-i18n="board.kOpen">Open</span></span>
+          <span><i class="k-filled"></i><span data-i18n="board.kFilled">Ranked</span></span>
+          <span><i class="k-top"></i><span data-i18n="board.kTop">Top 10</span></span>
+        </div>
+        <div class="slot-detail" id="slot-detail" aria-live="polite">
+          <p id="board-foot">No projects yet. The first submission takes slot 001.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band ranking" id="ranking">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" data-i18n="rank.eyebrow">The ranking</p>
+        <h2 data-i18n="rank.title">Every project, by GitHub stars</h2>
+        <p data-i18n="rank.lede">Slots aren't claimed. Star counts are refreshed every day, and the 100 most-starred projects fill the board. Projects below 100 wait just under the line.</p>
+      </div>
+      {all.length === 0 ? (
+        <div class="rank-empty">
+          <p data-i18n="rank.empty">No projects yet. Be the first to submit one.</p>
+          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Submit a project</a>
+        </div>
+      ) : (
+        <div class="rank-wrap">
+          <table class="rank">
+            <thead>
+              <tr><th scope="col">#</th><th scope="col" data-i18n="rank.project">Project</th><th scope="col" class="num">★</th><th scope="col" data-i18n="rank.links">Links</th></tr>
+            </thead>
+            <tbody>
+              {all.map((p) => (
+                <tr class={p.rank === SLOT_COUNT ? 'cutline' : ''}>
+                  <td class="mono">{slotId(p.rank)}</td>
+                  <td><strong>{p.title}</strong><span class="repo">{p.repo}</span></td>
+                  <td class="num mono">{fmt(p.stars)}</td>
+                  <td class="links"><a href={p.github_url} target="_blank" rel="noopener nofollow">GitHub</a>{p.website_url && <a href={p.website_url} target="_blank" rel="noopener nofollow" data-i18n="board.website">Website</a>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section class="band why">
+    <div class="wrap grid">
+      <div class="big" aria-hidden="true">100</div>
+      <div>
+        <p class="eyebrow" data-i18n="why.eyebrow">Why a hundred</p>
+        <h2 data-i18n="why.title">Big enough to matter. Small enough to finish.</h2>
+        <p data-i18n="why.p1">One project rarely moves a cause. A hundred of them, built by different people with different skills, start to add up to something people notice.</p>
+        <p data-i18n="why.p2">The board ranks every project by its GitHub stars. Anyone can see how far the community has come and which projects people are rallying behind.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" data-i18n="how.eyebrow">How it works</p>
+        <h2 data-i18n="how.title">From idea to the board</h2>
+      </div>
+      <ol class="steps">
+        <li>
+          <span class="step-n" data-i18n="how.s1n">Step 1</span>
+          <h3 data-i18n="how.s1t">Pick the cause</h3>
+          <p data-i18n="how.s1p">Each Projek Seratus is built around one cause the whole community agrees on, written down so every project can point back to it.</p>
+        </li>
+        <li>
+          <span class="step-n" data-i18n="how.s2n">Step 2</span>
+          <h3 data-i18n="how.s2t">Submit it</h3>
+          <p data-i18n="how.s2p">Send the title and GitHub link through the submission form. It becomes a pull request, and once it's merged your project is in the ranking.</p>
+        </li>
+        <li>
+          <span class="step-n" data-i18n="how.s3n">Step 3</span>
+          <h3 data-i18n="how.s3t">Build in the open</h3>
+          <p data-i18n="how.s3p">Share progress as you go. Ask for help, lend a hand on someone else's project, and keep the work visible.</p>
+        </li>
+        <li>
+          <span class="step-n" data-i18n="how.s4n">Step 4</span>
+          <h3 data-i18n="how.s4t">Climb the board</h3>
+          <p data-i18n="how.s4p">Projects are ranked by GitHub stars. The 100 most-starred fill the board, so the more people your project helps, the higher it climbs.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band join" id="join">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" data-i18n="join.eyebrow">Join the community</p>
+        <h2 data-i18n="join.title">There is room for you</h2>
+        <p data-i18n="join.lede">You don't need to be a developer. A project can be an app, a guide, an event, a dataset, a mural or a workshop, as long as it serves the cause.</p>
+      </div>
+      <div class="grid">
+        <article class="role">
+          <span class="tag" data-i18n="join.r1tag">Builder</span>
+          <h3 data-i18n="join.r1t">Make a project</h3>
+          <p data-i18n="join.r1p">Submit a project and build it. Code, docs, tools or data all count, as long as it lives on GitHub.</p>
+        </article>
+        <article class="role">
+          <span class="tag" data-i18n="join.r2tag">Helper</span>
+          <h3 data-i18n="join.r2t">Lend your skills</h3>
+          <p data-i18n="join.r2p">Review work, mentor a first-timer, test what others ship, or fill a gap on a team that needs you.</p>
+        </article>
+        <article class="role">
+          <span class="tag" data-i18n="join.r3tag">Supporter</span>
+          <h3 data-i18n="join.r3t">Spread the word</h3>
+          <p data-i18n="join.r3p">Star the projects you believe in, share them, and bring in people who care about the cause.</p>
+        </article>
+      </div>
+      <div class="notice">
+        <p><strong data-i18n="join.soonT">The community is just getting started</strong><span data-i18n="join.soonP">There's no group chat yet. You can submit a project today, and watch the repository on GitHub for news.</span></p>
+        <div class="actions" style="margin-top:0">
+          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Submit a project</a>
+          <a class="btn btn-ghost" href={REPO_URL} target="_blank" rel="noopener" data-i18n="join.soonCta">Watch on GitHub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band fork" id="fork">
+    <div class="wrap grid">
+      <div>
+        <p class="eyebrow" data-i18n="fork.eyebrow">Open source</p>
+        <h2 data-i18n="fork.title">Start your own Projek Seratus</h2>
+        <p class="intro" data-i18n="fork.intro">Projek Seratus is open source. Fork it, set your own cause, and run a hundred projects with your school, your office, your kampung or your city.</p>
+        <ul>
+          <li><span data-i18n="fork.b1">The site, the ranked 100-slot board and the submission form come ready to use.</span></li>
+          <li><span data-i18n="fork.b2">No database and no logins. Every project is a file in the repository, and every submission is a pull request.</span></li>
+          <li><span data-i18n="fork.b3">Deploy it free on Cloudflare. The site rebuilds every time a pull request is merged.</span></li>
+          <li><span data-i18n="fork.b4">Keep it open. Share what you improve so the next Projek Seratus starts further ahead.</span></li>
+        </ul>
+        <div class="actions">
+          <a class="btn btn-primary" href={REPO_URL} target="_blank" rel="noopener" data-i18n="fork.cta">View on GitHub</a>
+        </div>
+      </div>
+      <div class="term-col">
+        <div class="term">
+          <div class="term-bar"><span>terminal</span><button class="copy" id="copy-btn" type="button" data-i18n="fork.copy">Copy</button></div>
+<pre id="cmd"><span class="c" data-i18n="fork.c1"># 1. Fork on GitHub, then clone your copy</span>
+git clone https://github.com/<span class="k">your-name</span>/projek-seratus.git
+cd projek-seratus && npm install
+
+<span class="c" data-i18n="fork.c2"># 2. Set your cause and repo in src/lib/site.ts</span>
+
+<span class="c" data-i18n="fork.c3"># 3. Deploy to Cloudflare</span>
+npm run deploy</pre>
+        </div>
+        <p class="config" data-i18n="fork.note">Connect your fork to Cloudflare Workers Builds so every merge to <code>main</code> publishes a fresh board. The README has the steps.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band faq" id="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" data-i18n="faq.eyebrow">Questions</p>
+        <h2 data-i18n="faq.title">Good to know</h2>
+      </div>
+      <dl>
+        <div><dt data-i18n="faq.q1">Does it cost anything?</dt><dd data-i18n="faq.a1">No. Joining is free. You only need a GitHub account, and the Projek Seratus code is free to use, change and share.</dd></div>
+        <div><dt data-i18n="faq.q2">How is the board decided?</dt><dd data-i18n="faq.a2">By GitHub stars, refreshed every day. The 100 most-starred projects fill the board, so places can change as projects grow.</dd></div>
+        <div><dt data-i18n="faq.q3">Can I submit more than one project?</dt><dd data-i18n="faq.a3">Yes. Open one pull request per project. Each repository can only be submitted once.</dd></div>
+        <div><dt data-i18n="faq.q4">What counts as a project?</dt><dd data-i18n="faq.a4">Anything that serves the cause and lives in a public GitHub repository: an app, a guide, a dataset, a toolkit.</dd></div>
+      </dl>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import '../scripts/board';
+  import '../scripts/copy';
+</script>
