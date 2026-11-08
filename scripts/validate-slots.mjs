@@ -52,7 +52,7 @@ function check(name, text) {
   return errs;
 }
 
-const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
+const git = (...args) => execFileSync('git', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
 
 function main() {
   const errors = [];
