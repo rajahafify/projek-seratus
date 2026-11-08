@@ -5,7 +5,7 @@ export const MS: Record<string, string> = {
   "nav.fork": "Mulakan sendiri",
   "hero.l1": "100 projek.",
   "hero.l2": "Satu tujuan.",
-  "hero.lede": "Projek Seratus ialah komuniti Malaysia yang membina seratus projek sumber terbuka untuk satu tujuan bersama. Sesiapa boleh sertai, dan sesiapa boleh mulakan sendiri.",
+  "hero.lede": "Projek Seratus ialah komuniti Malaysia yang membina seratus projek sumber terbuka untuk satu tujuan bersama: <strong>kedaulatan teknologi Malaysia</strong>. Sesiapa boleh sertai, dan sesiapa boleh mulakan sendiri.",
   "hero.cta1": "Hantar projek",
   "hero.cta2": "Lihat dashboard",
   "board.title": "Dashboard Seratus",
