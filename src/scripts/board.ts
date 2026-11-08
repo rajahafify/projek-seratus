@@ -1,15 +1,13 @@
 import { t } from '../lib/i18n';
 import { slotId } from '../lib/site';
 
-interface Slot {
-  number: number;
-  project: string;
-  maker: string;
-  github_user: string;
+interface Ranked {
+  rank: number;
+  title: string;
+  github_url: string;
+  website_url?: string;
   repo: string;
-  website?: string;
-  status: 'building' | 'shipped';
-  description: string;
+  stars: number;
 }
 
 const board = document.getElementById('board');
@@ -17,14 +15,12 @@ const detail = document.getElementById('slot-detail');
 const dataEl = document.getElementById('slots-data');
 
 if (board && detail && dataEl) {
-  const slots = new Map<number, Slot>((JSON.parse(dataEl.textContent || '[]') as Slot[]).map((s) => [s.number, s]));
+  const ranked = new Map<number, Ranked>((JSON.parse(dataEl.textContent || '[]') as Ranked[]).map((p) => [p.rank, p]));
   const cells = Array.from(board.querySelectorAll<HTMLButtonElement>('.slot'));
-  const next = cells.findIndex((c) => !slots.has(Number(c.dataset.n))) + 1;
   let selected: number | null = null;
 
   const fill = (s: string, vars: Record<string, string | number>) =>
     s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
-
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text?: string) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -36,35 +32,34 @@ if (board && detail && dataEl) {
     a.href = href; a.target = '_blank'; a.rel = 'noopener nofollow';
     return a;
   };
+  const stars = (n: number) => `★ ${n.toLocaleString('en-US')}`;
 
   function render() {
     for (const c of cells) {
       const n = Number(c.dataset.n);
-      const s = slots.get(n);
+      const p = ranked.get(n);
       c.classList.toggle('is-selected', selected === n);
       c.setAttribute('aria-pressed', String(selected === n));
-      const state = s ? `${s.project}, ${t('slot.' + s.status)}` : t(n === next ? 'slot.next' : 'slot.open');
-      c.title = `${t('slot.label')} ${slotId(n)}: ${state}`;
+      c.title = `${t('slot.label')} ${slotId(n)}: ${p ? `${p.title}, ${stars(p.stars)}` : t('slot.open')}`;
       c.setAttribute('aria-label', c.title);
     }
 
-    const s = selected ? slots.get(selected) : undefined;
-    if (s) {
-      const card = el('div', 'detail-card');
+    const p = selected ? ranked.get(selected) : undefined;
+    if (p) {
       const links = el('p', 'links');
-      links.append(link(s.repo, 'GitHub'));
-      if (s.website) links.append(link(s.website, t('board.website')));
+      links.append(link(p.github_url, 'GitHub'));
+      if (p.website_url) links.append(link(p.website_url, t('board.website')));
+      const card = el('div', 'detail-card');
       card.append(
-        el('p', 'eyebrow', `${t('slot.label')} ${slotId(s.number)} · ${t('slot.' + s.status)}`),
-        el('h3', '', s.project),
-        el('p', 'by', fill(t('board.by'), { name: `${s.maker} (@${s.github_user})` })),
+        el('p', 'eyebrow', `${t('slot.label')} ${slotId(p.rank)} · ${stars(p.stars)}`),
+        el('h3', '', p.title),
+        el('p', 'by', p.repo),
+        links,
       );
-      if (s.description) card.append(el('p', '', s.description));
-      card.append(links);
       detail!.replaceChildren(card);
     } else {
-      const msg = slots.size === 0 ? t('board.footEmpty')
-        : next ? fill(t('board.footNext'), { count: slots.size, n: slotId(next) })
+      const msg = ranked.size === 0 ? t('board.footEmpty')
+        : ranked.size < cells.length ? fill(t('board.footSome'), { count: ranked.size })
         : t('board.footFull');
       detail!.replaceChildren(el('p', '', msg));
     }

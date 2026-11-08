@@ -1,4 +1,4 @@
-name: Check slots
+name: Check submissions
 
 on:
   pull_request:
@@ -20,9 +20,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Validate slot files
-        run: node scripts/validate-slots.mjs
+      - name: Validate submission files
+        run: node scripts/validate-submissions.mjs
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
           BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}

@@ -1,16 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { REPO_URL, SLOT_COUNT, slotId } from '../lib/site';
+import { getRanking } from '../lib/ranking';
 
-const entries = await getCollection('slots');
-const slots = entries
-  .map((e) => ({ number: Number(e.id), ...e.data, description: (e.body ?? '').trim() }))
-  .filter((s) => s.number >= 1 && s.number <= SLOT_COUNT)
-  .sort((a, b) => a.number - b.number);
-const byNumber = new Map(slots.map((s) => [s.number, s]));
-const cells = Array.from({ length: SLOT_COUNT }, (_, i) => ({ n: i + 1, slot: byNumber.get(i + 1) }));
-const next = cells.find((c) => !c.slot)?.n ?? 0;
+const { all, board } = await getRanking();
+const cells = Array.from({ length: SLOT_COUNT }, (_, i) => ({ n: i + 1, p: board[i] }));
+const fmt = (n: number) => n.toLocaleString('en-US');
 ---
 <Base>
   <section class="hero">
@@ -21,7 +16,7 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
         <span class="tagline" data-i18n="hero.tagline">Seratus projek. Satu tujuan.</span>
         <p class="lede" data-i18n="hero.lede">Projek Seratus brings people together to build <strong>one hundred projects</strong> for a cause they share. Small or big, code or not, every project fills a slot on the board until all hundred are done.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Claim a slot</a>
+          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Submit a project</a>
           <a class="btn btn-ghost" href="#fork" data-i18n="hero.cta2">Start your own Projek Seratus</a>
         </div>
       </div>
@@ -29,23 +24,57 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
       <div class="board-card">
         <div class="board-head">
           <span class="eyebrow">Papan Seratus</span>
-          <span class="count"><span id="filled">{slots.length}</span> / 100</span>
+          <span class="count"><span id="filled">{board.length}</span> / 100</span>
         </div>
-        <div class="board" id="board" role="list" aria-label="100 project slots">
+        <div class="board" id="board" role="list" aria-label="The 100 most-starred projects">
           {cells.map((c) => (
-            <button type="button" role="listitem" class={`slot${c.slot ? ` is-${c.slot.status}` : ''}${c.n === next ? ' first' : ''}`} data-n={c.n} disabled={!c.slot}>{slotId(c.n)}</button>
+            <button type="button" role="listitem" class={`slot${c.p ? (c.n <= 10 ? ' is-top' : ' is-filled') : ''}`} data-n={c.n} disabled={!c.p}>{slotId(c.n)}</button>
           ))}
         </div>
-        <script type="application/json" id="slots-data" set:html={JSON.stringify(slots)} />
+        <script type="application/json" id="slots-data" set:html={JSON.stringify(board)} />
         <div class="board-legend" aria-hidden="true">
           <span><i class="k-open"></i><span data-i18n="board.kOpen">Open</span></span>
-          <span><i class="k-building"></i><span data-i18n="board.kBuilding">Building</span></span>
-          <span><i class="k-shipped"></i><span data-i18n="board.kShipped">Shipped</span></span>
+          <span><i class="k-filled"></i><span data-i18n="board.kFilled">Ranked</span></span>
+          <span><i class="k-top"></i><span data-i18n="board.kTop">Top 10</span></span>
         </div>
         <div class="slot-detail" id="slot-detail" aria-live="polite">
-          <p id="board-foot">Slot 001 is open. The first project starts the board.</p>
+          <p id="board-foot">No projects yet. The first submission takes slot 001.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="band ranking" id="ranking">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" data-i18n="rank.eyebrow">The ranking</p>
+        <h2 data-i18n="rank.title">Every project, by GitHub stars</h2>
+        <p data-i18n="rank.lede">Slots aren't claimed. Star counts are refreshed every day, and the 100 most-starred projects fill the board. Projects below 100 wait just under the line.</p>
+      </div>
+      {all.length === 0 ? (
+        <div class="rank-empty">
+          <p data-i18n="rank.empty">No projects yet. Be the first to submit one.</p>
+          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Submit a project</a>
+        </div>
+      ) : (
+        <div class="rank-wrap">
+          <table class="rank">
+            <thead>
+              <tr><th scope="col">#</th><th scope="col" data-i18n="rank.project">Project</th><th scope="col" class="num">★</th><th scope="col" data-i18n="rank.links">Links</th></tr>
+            </thead>
+            <tbody>
+              {all.map((p) => (
+                <tr class={p.rank === SLOT_COUNT ? 'cutline' : ''}>
+                  <td class="mono">{slotId(p.rank)}</td>
+                  <td><strong>{p.title}</strong><span class="repo">{p.repo}</span></td>
+                  <td class="num mono">{fmt(p.stars)}</td>
+                  <td class="links"><a href={p.github_url} target="_blank" rel="noopener nofollow">GitHub</a>{p.website_url && <a href={p.website_url} target="_blank" rel="noopener nofollow" data-i18n="board.website">Website</a>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   </section>
 
@@ -56,7 +85,7 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
         <p class="eyebrow" data-i18n="why.eyebrow">Why a hundred</p>
         <h2 data-i18n="why.title">Big enough to matter. Small enough to finish.</h2>
         <p data-i18n="why.p1">One project rarely moves a cause. A hundred of them, built by different people with different skills, start to add up to something people notice.</p>
-        <p data-i18n="why.p2">A fixed number keeps everyone honest. The board shows exactly how far the community has come and how many slots are still open, so anyone can see where to help next.</p>
+        <p data-i18n="why.p2">The board ranks every project by its GitHub stars. Anyone can see how far the community has come and which projects people are rallying behind.</p>
       </div>
     </div>
   </section>
@@ -65,7 +94,7 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow" data-i18n="how.eyebrow">How it works</p>
-        <h2 data-i18n="how.title">From idea to slot filled</h2>
+        <h2 data-i18n="how.title">From idea to the board</h2>
       </div>
       <ol class="steps">
         <li>
@@ -75,18 +104,18 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
         </li>
         <li>
           <span class="step-n" data-i18n="how.s2n">Step 2</span>
-          <h3 data-i18n="how.s2t">Claim a slot</h3>
-          <p data-i18n="how.s2p">Fill in the claim form with your GitHub link. It becomes a pull request, and once it's merged the number is yours.</p>
+          <h3 data-i18n="how.s2t">Submit it</h3>
+          <p data-i18n="how.s2p">Send the title and GitHub link through the submission form. It becomes a pull request, and once it's merged your project is in the ranking.</p>
         </li>
         <li>
           <span class="step-n" data-i18n="how.s3n">Step 3</span>
           <h3 data-i18n="how.s3t">Build in the open</h3>
-          <p data-i18n="how.s3p">Share progress as you go. Ask for help, lend a hand on someone else's slot, and keep the work visible.</p>
+          <p data-i18n="how.s3p">Share progress as you go. Ask for help, lend a hand on someone else's project, and keep the work visible.</p>
         </li>
         <li>
           <span class="step-n" data-i18n="how.s4n">Step 4</span>
-          <h3 data-i18n="how.s4t">Ship it</h3>
-          <p data-i18n="how.s4p">Show what you made and how it serves the cause. Your slot turns gold on the board, and the count moves one closer to 100.</p>
+          <h3 data-i18n="how.s4t">Climb the board</h3>
+          <p data-i18n="how.s4p">Projects are ranked by GitHub stars. The 100 most-starred fill the board, so the more people your project helps, the higher it climbs.</p>
         </li>
       </ol>
     </div>
@@ -96,14 +125,14 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow" data-i18n="join.eyebrow">Join the community</p>
-        <h2 data-i18n="join.title">There is a slot for you</h2>
+        <h2 data-i18n="join.title">There is room for you</h2>
         <p data-i18n="join.lede">You don't need to be a developer. A project can be an app, a guide, an event, a dataset, a mural or a workshop, as long as it serves the cause.</p>
       </div>
       <div class="grid">
         <article class="role">
           <span class="tag" data-i18n="join.r1tag">Builder</span>
           <h3 data-i18n="join.r1t">Make a project</h3>
-          <p data-i18n="join.r1p">Claim a slot and build something. Code, design, writing, research or organising all count.</p>
+          <p data-i18n="join.r1p">Submit a project and build it. Code, docs, tools or data all count, as long as it lives on GitHub.</p>
         </article>
         <article class="role">
           <span class="tag" data-i18n="join.r2tag">Helper</span>
@@ -113,13 +142,13 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
         <article class="role">
           <span class="tag" data-i18n="join.r3tag">Supporter</span>
           <h3 data-i18n="join.r3t">Spread the word</h3>
-          <p data-i18n="join.r3p">Share finished projects, bring in people who care about the cause, and cheer every slot that turns gold.</p>
+          <p data-i18n="join.r3p">Star the projects you believe in, share them, and bring in people who care about the cause.</p>
         </article>
       </div>
       <div class="notice">
-        <p><strong data-i18n="join.soonT">The community is just getting started</strong><span data-i18n="join.soonP">There's no group chat yet. You can claim a slot today, and watch the repository on GitHub for news.</span></p>
+        <p><strong data-i18n="join.soonT">The community is just getting started</strong><span data-i18n="join.soonP">There's no group chat yet. You can submit a project today, and watch the repository on GitHub for news.</span></p>
         <div class="actions" style="margin-top:0">
-          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Claim a slot</a>
+          <a class="btn btn-primary" href="/apply" data-i18n="hero.cta1">Submit a project</a>
           <a class="btn btn-ghost" href={REPO_URL} target="_blank" rel="noopener" data-i18n="join.soonCta">Watch on GitHub</a>
         </div>
       </div>
@@ -133,8 +162,8 @@ const next = cells.find((c) => !c.slot)?.n ?? 0;
         <h2 data-i18n="fork.title">Start your own Projek Seratus</h2>
         <p class="intro" data-i18n="fork.intro">Projek Seratus is open source. Fork it, set your own cause, and run a hundred projects with your school, your office, your kampung or your city.</p>
         <ul>
-          <li><span data-i18n="fork.b1">The site, the live 100-slot board and the claim form come ready to use.</span></li>
-          <li><span data-i18n="fork.b2">No database and no logins. Every slot is a file in the repository, and every claim is a pull request.</span></li>
+          <li><span data-i18n="fork.b1">The site, the ranked 100-slot board and the submission form come ready to use.</span></li>
+          <li><span data-i18n="fork.b2">No database and no logins. Every project is a file in the repository, and every submission is a pull request.</span></li>
           <li><span data-i18n="fork.b3">Deploy it free on Cloudflare. The site rebuilds every time a pull request is merged.</span></li>
           <li><span data-i18n="fork.b4">Keep it open. Share what you improve so the next Projek Seratus starts further ahead.</span></li>
         </ul>
@@ -167,9 +196,9 @@ npm run deploy</pre>
       </div>
       <dl>
         <div><dt data-i18n="faq.q1">Does it cost anything?</dt><dd data-i18n="faq.a1">No. Joining is free. You only need a GitHub account, and the Projek Seratus code is free to use, change and share.</dd></div>
-        <div><dt data-i18n="faq.q2">What counts as a project?</dt><dd data-i18n="faq.a2">Anything that serves the cause and can be shown when it's done. One person can finish a small one in a weekend.</dd></div>
-        <div><dt data-i18n="faq.q3">Can I take more than one slot?</dt><dd data-i18n="faq.a3">Yes, once your first project ships. That keeps slots open for newcomers.</dd></div>
-        <div><dt data-i18n="faq.q4">What happens at 100?</dt><dd data-i18n="faq.a4">The community celebrates, shares what all hundred projects achieved, and decides whether to start the next hundred.</dd></div>
+        <div><dt data-i18n="faq.q2">How is the board decided?</dt><dd data-i18n="faq.a2">By GitHub stars, refreshed every day. The 100 most-starred projects fill the board, so places can change as projects grow.</dd></div>
+        <div><dt data-i18n="faq.q3">Can I submit more than one project?</dt><dd data-i18n="faq.a3">Yes. Open one pull request per project. Each repository can only be submitted once.</dd></div>
+        <div><dt data-i18n="faq.q4">What counts as a project?</dt><dd data-i18n="faq.a4">Anything that serves the cause and lives in a public GitHub repository: an app, a guide, a dataset, a toolkit.</dd></div>
       </dl>
     </div>
   </section>

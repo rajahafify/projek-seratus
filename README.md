@@ -6,24 +6,23 @@ Projek Seratus is a community effort to build 100 projects for a common cause. E
 
 Live site: https://projek-seratus.artifisi.com
 
-## How claiming works
+## How submissions work
 
 There is no database and no login. The repository is the database.
 
-- Every claimed slot is one file in [`slots/`](slots/), named by its number (`001.md` to `100.md`).
-- The [claim form](https://projek-seratus.artifisi.com/apply) builds that file and opens GitHub's "new file" page with it filled in. The applicant commits it and opens a pull request.
-- The **Check slots** GitHub Action validates the file and checks that the pull request author is the `github_user` in it (people can only add or edit their own slot).
-- A maintainer merges the pull request. Cloudflare rebuilds the site and the slot appears on the board.
-- When a project ships, its maker opens another pull request that changes `status: building` to `status: shipped`.
-
-If two people claim the same number at once, the second pull request will conflict. Rename that file to the next open number before merging.
+- Every project is one file in [`submissions/`](submissions/), named after its title (`peta-banjir.md`), with three fields: `title` and `github_url` (required) and `website_url` (optional).
+- The [submission form](https://projek-seratus.artifisi.com/apply) builds that file and opens GitHub's "new file" page with it filled in. The submitter commits it and opens a pull request.
+- The **Check submissions** GitHub Action validates the file, rejects a repository that's already been submitted, checks that the repository is public, and makes sure outside contributors only add new files (they can't edit or remove other people's submissions).
+- A maintainer merges the pull request to accept the project.
+- Nobody picks a slot. The **Refresh stars** workflow looks up every repository's GitHub stars daily, and again after each merge, and commits them to `data/stars.json`. The 100 most-starred projects fill the board, and the rest are listed below it. Each of those commits redeploys the site.
 
 ## Develop
 
 ```sh
 npm install
 npm run dev                          # http://localhost:4321
-node scripts/validate-slots.mjs      # check the slot files
+node scripts/validate-submissions.mjs   # check the submission files
+node scripts/refresh-stars.mjs          # update data/stars.json (set GITHUB_TOKEN)
 npm run build                        # static site in ./dist
 ```
 
@@ -45,4 +44,4 @@ To deploy by hand instead: `npx wrangler login`, then `npm run deploy`.
 1. Fork this repository.
 2. Change `REPO` in `src/lib/site.ts` to your fork, and edit the cause and text in `src/pages/index.astro` and `src/lib/i18n.ts`.
 3. Change the `name` and the domain in `wrangler.jsonc`, then connect your fork to Cloudflare as above.
-4. Delete any files in `slots/` other than `README.md` so your board starts empty.
+4. Delete the files in `submissions/` other than `README.md`, and reset `data/stars.json` to `{}`, so your board starts empty.

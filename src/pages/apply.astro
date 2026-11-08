@@ -1,169 +1,125 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { REPO, BRANCH, SLOT_COUNT, slotId } from '../lib/site';
-
-const taken = new Set((await getCollection('slots')).map((e) => Number(e.id)));
-let next = 0;
-for (let i = 1; i <= SLOT_COUNT; i++) if (!taken.has(i)) { next = i; break; }
-const n = slotId(next);
+import { REPO, BRANCH } from '../lib/site';
 ---
-<Base title="Claim a slot · Projek Seratus" description="Claim one of the 100 slots on the Projek Seratus board with a GitHub pull request.">
+<Base title="Submit a project · Projek Seratus" description="Submit your project to Projek Seratus with a GitHub pull request.">
   <section class="band apply">
     <div class="wrap apply-grid">
       <div class="apply-intro">
-        <p class="eyebrow" data-i18n="apply.eyebrow">Claim a slot</p>
-        <h1 class="page-title" data-i18n="apply.title" data-n={n}>Claim slot {n}</h1>
-        <p class="lede" data-i18n="apply.lede">Fill this in and we'll prepare your slot file. You send it as a pull request on GitHub. When it's merged, your slot appears on the board.</p>
+        <p class="eyebrow" data-i18n="apply.eyebrow">Submit a project</p>
+        <h1 class="page-title" data-i18n="apply.title">Put your project on the board</h1>
+        <p class="lede" data-i18n="apply.lede">Fill this in and we'll prepare your submission file. You send it as a pull request on GitHub. Once it's merged, your project joins the ranking.</p>
 
         <div class="steps-box">
           <h2 data-i18n="apply.stepsT">What happens next</h2>
           <ol>
             <li data-i18n="apply.step1">GitHub opens your filled-in file. If it asks, fork the repository first.</li>
             <li data-i18n="apply.step2">Press <b>Commit changes</b>, then <b>Create pull request</b>.</li>
-            <li data-i18n="apply.step3">An automatic check looks over your file. An organiser merges it, and your slot shows up on the board within a few minutes.</li>
+            <li data-i18n="apply.step3">An automatic check looks over your file. Once an organiser merges it, your project appears in the ranking within a day.</li>
           </ol>
-          <p class="hint" data-i18n="apply.taken" data-n={n}>If someone else claims slot {n} first, we'll renumber your file to the next open slot.</p>
+          <p class="hint" data-i18n="apply.rankHint">You don't pick a slot. The 100 projects with the most GitHub stars fill the board, and star counts are refreshed every day.</p>
         </div>
       </div>
 
-      {next === 0 ? (
-        <div class="panel"><p data-i18n="apply.full">All 100 slots are claimed.</p></div>
-      ) : (
-        <form class="panel form" id="claim-form" novalidate data-repo={REPO} data-branch={BRANCH} data-slot={n}>
-          <div class="field-row">
-            <div class="field">
-              <label for="f-name" data-i18n="apply.f.name">Display name</label>
-              <input id="f-name" type="text" maxlength="100" required autocomplete="name" />
-              <small data-i18n="apply.f.nameHint">Shown on the board.</small>
-            </div>
-            <div class="field">
-              <label for="f-user" data-i18n="apply.f.user">GitHub username</label>
-              <input id="f-user" type="text" maxlength="39" required autocapitalize="off" spellcheck="false" placeholder="your-name" />
-              <small data-i18n="apply.f.userHint">The account that will open the pull request. They must match.</small>
-              <span class="err" id="e-user" hidden></span>
-            </div>
-          </div>
-          <div class="field">
-            <label for="f-project" data-i18n="apply.f.project">Project name</label>
-            <input id="f-project" type="text" maxlength="80" required />
-          </div>
-          <div class="field">
-            <label for="f-desc" data-i18n="apply.f.desc">What will you build?</label>
-            <textarea id="f-desc" rows="3" maxlength="500"></textarea>
-            <small data-i18n="apply.f.descHint">One or two sentences on the project and how it serves the cause.</small>
-          </div>
-          <div class="field">
-            <label for="f-repo" data-i18n="apply.f.github">Project GitHub link</label>
-            <input id="f-repo" type="url" inputmode="url" required spellcheck="false" placeholder="https://github.com/your-name/your-project" />
-            <small data-i18n="apply.f.githubHint">Your repository or profile, for example https://github.com/your-name/project</small>
-            <span class="err" id="e-repo" hidden></span>
-          </div>
-          <div class="field">
-            <label for="f-website" data-i18n="apply.f.website">Website (optional)</label>
-            <input id="f-website" type="url" inputmode="url" spellcheck="false" placeholder="https://" />
-            <small data-i18n="apply.f.websiteHint">A demo, a project page, or wherever people can try it.</small>
-            <span class="err" id="e-website" hidden></span>
-          </div>
+      <form class="panel form" id="submit-form" novalidate data-repo={REPO} data-branch={BRANCH}>
+        <div class="field">
+          <label for="f-title" data-i18n="apply.f.title">Project title</label>
+          <input id="f-title" type="text" maxlength="80" required />
+          <small data-i18n="apply.f.titleHint">Also used as the file name.</small>
+        </div>
+        <div class="field">
+          <label for="f-github" data-i18n="apply.f.github">GitHub repository</label>
+          <input id="f-github" type="url" inputmode="url" required spellcheck="false" placeholder="https://github.com/owner/repo" />
+          <small data-i18n="apply.f.githubHint">Its stars decide the project's place on the board.</small>
+          <span class="err" id="e-github" hidden></span>
+        </div>
+        <div class="field">
+          <label for="f-website" data-i18n="apply.f.website">Website (optional)</label>
+          <input id="f-website" type="url" inputmode="url" spellcheck="false" placeholder="https://" />
+          <small data-i18n="apply.f.websiteHint">A demo, a project page, or wherever people can try it.</small>
+          <span class="err" id="e-website" hidden></span>
+        </div>
 
-          <div class="file-preview">
-            <div class="term-bar"><span><span data-i18n="apply.preview">Your slot file</span> · slots/{n}.md</span></div>
-            <pre id="preview"></pre>
-          </div>
+        <div class="file-preview">
+          <div class="term-bar"><span><span data-i18n="apply.preview">Your submission file</span> · <span id="file-name">submissions/….md</span></span></div>
+          <pre id="preview"></pre>
+        </div>
 
-          <p class="err" id="e-form" hidden></p>
-          <div class="actions">
-            <a class="btn btn-primary" id="open-pr" href="#" target="_blank" rel="noopener" data-i18n="apply.submit">Open pull request on GitHub</a>
-          </div>
-        </form>
-      )}
+        <p class="err" id="e-form" hidden></p>
+        <div class="actions">
+          <a class="btn btn-primary" id="open-pr" href="#" target="_blank" rel="noopener" data-i18n="apply.submit">Open pull request on GitHub</a>
+        </div>
+      </form>
     </div>
   </section>
 </Base>
 
 <script>
   import { t } from '../lib/i18n';
+  import { slugify } from '../lib/site';
 
-  // Fill {n} in translated strings that carry a slot number.
-  const fillN = () => document.querySelectorAll<HTMLElement>('[data-n]').forEach((e) => {
-    e.innerHTML = e.innerHTML.replace(/\{n\}/g, e.dataset.n!);
+  const form = document.getElementById('submit-form') as HTMLFormElement;
+  const REPO_RE = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/;
+  const WEB_RE = /^https?:\/\/[^\s]+$/;
+  const { repo, branch } = form.dataset as { repo: string; branch: string };
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+
+  const values = () => ({
+    title: $('f-title').value.trim(),
+    github: $('f-github').value.trim().replace(/\/+$/, '').replace(/\.git$/, ''),
+    website: $('f-website').value.trim(),
   });
-  fillN();
-  document.addEventListener('langchange', fillN);
 
-  const form = document.getElementById('claim-form') as HTMLFormElement | null;
-  if (form) {
-    const USER_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
-    const REPO_RE = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)?\/?$/;
-    const WEB_RE = /^https?:\/\/[^\s]+$/;
-    const { repo, branch, slot } = form.dataset as { repo: string; branch: string; slot: string };
-    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
-    const q = (v: string) => JSON.stringify(v); // YAML accepts JSON-style double-quoted strings
+  const fileText = (v: ReturnType<typeof values>) => [
+    '---',
+    `title: ${JSON.stringify(v.title)}`, // YAML reads JSON-style double-quoted strings
+    `github_url: ${v.github}`,
+    ...(v.website ? [`website_url: ${v.website}`] : []),
+    '---',
+    '',
+  ].join('\n');
 
-    const values = () => ({
-      maker: $('f-name').value.trim(),
-      user: $('f-user').value.trim().replace(/^@/, ''),
-      project: $('f-project').value.trim(),
-      desc: $('f-desc').value.trim().replace(/^-{3,}/gm, ''),
-      repoUrl: $('f-repo').value.trim().replace(/\/+$/, ''),
-      website: $('f-website').value.trim(),
-    });
+  const setErr = (id: string, key: string | null) => {
+    const e = document.getElementById(id)!; e.hidden = !key; e.textContent = key ? t(key) : '';
+  };
 
-    const fileText = (v: ReturnType<typeof values>) => [
-      '---',
-      `project: ${q(v.project)}`,
-      `maker: ${q(v.maker)}`,
-      `github_user: ${v.user}`,
-      `repo: ${v.repoUrl}`,
-      ...(v.website ? [`website: ${v.website}`] : []),
-      'status: building',
-      '---',
-      v.desc,
-      '',
-    ].join('\n');
-
-    const prUrl = (text: string) =>
-      `https://github.com/${repo}/new/${branch}/slots?filename=${slot}.md&value=${encodeURIComponent(text)}`;
-
-    const setErr = (id: string, key: string | null) => {
-      const e = document.getElementById(id)!; e.hidden = !key; e.textContent = key ? t(key) : '';
-    };
-
-    function validate(v: ReturnType<typeof values>, showErrors: boolean) {
-      const userOk = USER_RE.test(v.user);
-      const repoOk = REPO_RE.test(v.repoUrl);
-      const webOk = !v.website || WEB_RE.test(v.website);
-      const reqOk = !!v.maker && !!v.project;
-      if (showErrors) {
-        setErr('e-user', userOk ? null : 'apply.err.user');
-        setErr('e-repo', repoOk ? null : 'apply.err.github');
-        setErr('e-website', webOk ? null : 'apply.err.website');
-        setErr('e-form', reqOk ? null : 'apply.err.required');
-      }
-      return userOk && repoOk && webOk && reqOk;
+  function validate(v: ReturnType<typeof values>, show: boolean) {
+    const titleOk = !!v.title && !!slugify(v.title);
+    const repoOk = REPO_RE.test(v.github);
+    const webOk = !v.website || WEB_RE.test(v.website);
+    if (show) {
+      setErr('e-form', titleOk ? null : 'apply.err.title');
+      setErr('e-github', repoOk ? null : 'apply.err.github');
+      setErr('e-website', webOk ? null : 'apply.err.website');
     }
-
-    const preview = document.getElementById('preview')!;
-    const btn = document.getElementById('open-pr') as HTMLAnchorElement;
-    let tried = false;
-
-    function update() {
-      const v = values();
-      const text = fileText(v);
-      preview.textContent = text;
-      const ok = validate(v, tried);
-      btn.href = ok ? prUrl(text) : '#';
-      btn.setAttribute('aria-disabled', String(!ok));
-    }
-
-    form.addEventListener('input', update);
-    form.addEventListener('submit', (e) => e.preventDefault());
-    btn.addEventListener('click', (e) => {
-      tried = true;
-      update();
-      if (btn.getAttribute('aria-disabled') === 'true') e.preventDefault();
-    });
-    document.addEventListener('langchange', () => { if (tried) update(); });
-    update();
+    return titleOk && repoOk && webOk;
   }
+
+  const preview = document.getElementById('preview')!;
+  const fileName = document.getElementById('file-name')!;
+  const btn = document.getElementById('open-pr') as HTMLAnchorElement;
+  let tried = false;
+
+  function update() {
+    const v = values();
+    const name = `${slugify(v.title) || '…'}.md`;
+    const text = fileText(v);
+    fileName.textContent = `submissions/${name}`;
+    preview.textContent = text;
+    const ok = validate(v, tried);
+    btn.href = ok
+      ? `https://github.com/${repo}/new/${branch}/submissions?filename=${encodeURIComponent(name)}&value=${encodeURIComponent(text)}`
+      : '#';
+    btn.setAttribute('aria-disabled', String(!ok));
+  }
+
+  form.addEventListener('input', update);
+  form.addEventListener('submit', (e) => e.preventDefault());
+  btn.addEventListener('click', (e) => {
+    tried = true;
+    update();
+    if (btn.getAttribute('aria-disabled') === 'true') e.preventDefault();
+  });
+  document.addEventListener('langchange', () => { if (tried) update(); });
+  update();
 </script>

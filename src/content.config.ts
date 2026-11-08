@@ -2,20 +2,17 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-// Each claimed slot is one file in /slots, named by its number: slots/007.md
-// A pull request adds the file; merging it approves the claim.
-export const GITHUB_REPO_RE = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)?\/?$/;
+// Each submitted project is one file in /submissions, named after its title: submissions/peta-banjir.md
+// A pull request adds the file; merging it accepts the project. Slots are given by GitHub stars, not chosen.
+export const REPO_URL_RE = /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/;
 
-const slots = defineCollection({
-  loader: glob({ pattern: '[0-9][0-9][0-9].md', base: './slots' }),
+const submissions = defineCollection({
+  loader: glob({ pattern: ['*.md', '!README.md'], base: './submissions' }),
   schema: z.object({
-    project: z.string().min(1).max(80),
-    maker: z.string().min(1).max(100),
-    github_user: z.string().regex(/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/),
-    repo: z.string().regex(GITHUB_REPO_RE),
-    website: z.url().optional(),
-    status: z.enum(['building', 'shipped']).default('building'),
+    title: z.string().min(1).max(80),
+    github_url: z.string().regex(REPO_URL_RE),
+    website_url: z.url().optional(),
   }),
 });
 
-export const collections = { slots };
+export const collections = { submissions };
