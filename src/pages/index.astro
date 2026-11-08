@@ -38,7 +38,9 @@ const fmt = (n: number) => n.toLocaleString('en-US');
           <span><i class="k-top"></i><span data-i18n="board.kTop">Top 10</span></span>
         </div>
         <div class="slot-detail" id="slot-detail" aria-live="polite">
-          <p id="board-foot">No projects yet. The first submission takes slot 001.</p>
+          <p id="board-foot">{board.length === 0 ? 'No projects yet. The first submission takes slot 001.'
+            : board.length < SLOT_COUNT ? `${board.length} ${board.length === 1 ? 'project' : 'projects'} on the board, ranked by GitHub stars. Tap a slot to see the project.`
+            : 'The board is full. Tap a slot to see the project, or see the full ranking below.'}</p>
         </div>
       </div>
     </div>
