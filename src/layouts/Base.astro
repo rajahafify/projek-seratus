@@ -1,0 +1,65 @@
+---
+import '../styles/global.css';
+import { REPO_URL } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = 'Projek Seratus',
+  description = 'Projek Seratus: a community that builds 100 projects for one common cause. Open source, so anyone can start their own.',
+} = Astro.props;
+const path = Astro.url.pathname;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="/" aria-label="Projek Seratus">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          Projek Seratus
+        </a>
+        <div class="top-right">
+          <nav aria-label="Sections">
+            <a href="/#how" data-i18n="nav.how">How it works</a>
+            <a href="/#fork" data-i18n="nav.fork">Start your own</a>
+            <a href="/#faq" data-i18n="nav.faq">FAQ</a>
+            <a href="/apply" aria-current={path.startsWith('/apply') ? 'page' : undefined} data-i18n="nav.apply">Claim a slot</a>
+          </nav>
+          <div class="lang" role="group" aria-label="Language / Bahasa">
+            <button type="button" id="lang-en" data-lang="en" aria-pressed="true">EN</button>
+            <button type="button" id="lang-ms" data-lang="ms" aria-pressed="false">BM</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <slot />
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span data-i18n="footer.l">Projek Seratus · open source, built by the community</span>
+        <a href={REPO_URL} target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </footer>
+
+    <script>
+      import { initLang } from '../lib/i18n';
+      initLang();
+    </script>
+  </body>
+</html>

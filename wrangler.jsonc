@@ -1,0 +1,13 @@
+{
+  // Cloudflare Workers, static assets only. `npm run deploy` builds and uploads ./dist.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "projek-seratus",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "projek-seratus.artifisi.com", "custom_domain": true }
+  ]
+}
